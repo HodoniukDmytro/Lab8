@@ -1,14 +1,12 @@
 package sample;
 
 public class Customer {
-
     private String name;
     private String surname;
     private String email;
     private CustomerType customerType;
     private Account account;
     private double companyOverdraftDiscount = 1;
-
 
     public Customer(String name, String surname, String email, CustomerType customerType, Account account) {
         this.name = name;
@@ -18,7 +16,6 @@ public class Customer {
         this.account = account;
     }
 
-    // use only to create companies
     public Customer(String name, String email, Account account, double companyOverdraftDiscount) {
         this.name = name;
         this.email = email;
@@ -28,56 +25,36 @@ public class Customer {
     }
 
     public void withdraw(double sum, String currency) {
+        validateCurrency(currency);
+
+        double amountToWithdraw = calculateAmountToWithdraw(sum);
+
+        account.setMoney(account.getMoney() - amountToWithdraw);
+    }
+
+    private void validateCurrency(String currency) {
         if (!account.getCurrency().equals(currency)) {
             throw new RuntimeException("Can't extract withdraw " + currency);
         }
-        if (account.getType().isPremium()) {
-            switch (customerType) {
-                case COMPANY:
-                    // we are in overdraft
-                    if (account.getMoney() < 0) {
-                        // 50 percent discount for overdraft for premium account
-                        account.setMoney((account.getMoney() - sum) - sum * account.overdraftFee() * companyOverdraftDiscount / 2);
-                    } else {
-                        account.setMoney(account.getMoney() - sum);
-                    }
-                    break;
-                case PERSON:
-
-                    // we are in overdraft
-                    if (account.getMoney() < 0) {
-                        account.setMoney((account.getMoney() - sum) - sum * account.overdraftFee());
-                    } else {
-                        account.setMoney(account.getMoney() - sum);
-                    }
-                    break;
-            }
-
-        } else {
-
-            switch (customerType) {
-                case COMPANY:
-                    // we are in overdraft
-                    if (account.getMoney() < 0) {
-                        // no discount for overdraft for not premium account
-                        account.setMoney((account.getMoney() - sum) - sum * account.overdraftFee() * companyOverdraftDiscount);
-                    } else {
-                        account.setMoney(account.getMoney() - sum);
-                    }
-                    break;
-                case PERSON:
-                    // we are in overdraft
-                    if (account.getMoney() < 0) {
-                        account.setMoney((account.getMoney() - sum) - sum * account.overdraftFee());
-                    } else {
-                        account.setMoney(account.getMoney() - sum);
-                    }
-                    break;
-            }
-        }
     }
 
-    public String getName() {
+    private double calculateAmountToWithdraw(double sum) {
+        boolean isOverdrawn = account.getMoney() < 0;
+        double fee = account.overdraftFee();
+        double discountFactor = getDiscountFactor();
+
+        return sum + (isOverdrawn ? sum * fee * discountFactor : 0);
+    }
+
+    private double getDiscountFactor() {
+        if (customerType == CustomerType.COMPANY && account.getType().isPremium()) {
+            return 0.5;
+        }
+        return 1.0;
+    }
+
+
+    public String getFullName() {
         return name;
     }
 
@@ -102,9 +79,7 @@ public class Customer {
     }
 
     public String printCustomerDaysOverdrawn() {
-        String fullName = name + " " + surname + " ";
-        String accountDescription = "Account: IBAN: " + account.getIban() + ", Days Overdrawn: " + account.getDaysOverdrawn();
-        return fullName + accountDescription;
+        return name + " " + surname + ", " + account.getAccountSummary();
     }
 
     public String printCustomerMoney() {

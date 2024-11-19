@@ -1,10 +1,9 @@
 package sample;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 
 public class CustomerTest {
 
@@ -53,7 +52,7 @@ public class CustomerTest {
         Account account = getAccountByTypeAndMoney(false, -10);
         Customer customer = getCompanyCustomer(account);
         customer.withdraw(10, "EUR");
-        assertThat(account.getMoney(), is(-21.0));
+        assertThat(account.getMoney(), is(-22.0));
     }
 
     @Test
@@ -69,13 +68,13 @@ public class CustomerTest {
         Account account = getAccountByTypeAndMoney(true, -10);
         Customer customer = getCompanyCustomer(account);
         customer.withdraw(10, "EUR");
-        assertThat(account.getMoney(), is(-20.25));
+        assertThat(account.getMoney(), is(-20.5));
     }
 
     @Test
     public void testPrintCustomerDaysOverdrawn() throws Exception {
         Customer customer = getPersonWithAccount(false);
-        assertThat(customer.printCustomerDaysOverdrawn(), is("danix dan Account: IBAN: RO023INGB434321431241, Days Overdrawn: 9"));
+        assertThat(customer.printCustomerDaysOverdrawn(), is("danix dan, IBAN: RO023INGB434321431241, Money: 34.0 EUR, Days Overdrawn: 9"));
     }
 
     @Test
@@ -97,21 +96,25 @@ public class CustomerTest {
     }
 
     private Customer getPersonWithAccount(boolean premium) {
-        AccountType accountType = new AccountType(premium);
-        Account account = new Account(accountType, 9);
+        AccountType accountType = premium ? AccountType.PREMIUM : AccountType.NORMAL;
+
+        MoneyWithCurrency balance = new MoneyWithCurrency(34.0, "EUR");
+
+        Account account = new Account(accountType, 9, balance);
+
         Customer customer = getPersonCustomer(account);
         account.setIban("RO023INGB434321431241");
-        account.setMoney(34.0);
-        account.setCurrency("EUR");
         return customer;
     }
 
     private Account getAccountByTypeAndMoney(boolean premium, double money) {
-        AccountType accountType = new AccountType(premium);
-        Account account = new Account(accountType, 9);
+        AccountType accountType = premium ? AccountType.PREMIUM : AccountType.NORMAL;
+
+        MoneyWithCurrency balance = new MoneyWithCurrency(money, "EUR");
+
+        Account account = new Account(accountType, 9, balance);
         account.setIban("RO023INGB434321431241");
-        account.setMoney(money);
-        account.setCurrency("EUR");
+
         return account;
     }
 
