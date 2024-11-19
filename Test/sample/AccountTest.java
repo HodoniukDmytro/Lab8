@@ -1,8 +1,9 @@
 package sample;
 
-import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
+
+import org.junit.Test;
 
 public class AccountTest {
 
@@ -39,12 +40,16 @@ public class AccountTest {
     }
 
     private Account getNormalAccount() {
-        AccountType premium = new AccountType(false);
-        return new Account(premium, 9);
+        AccountType normal = AccountType.NORMAL;
+        MoneyWithCurrency balance = new MoneyWithCurrency(0.0, "EUR");
+
+        return new Account(normal, 9, balance);
     }
 
     private Account getPremiumAccount(int daysOverdrawn) {
-        AccountType normal = new AccountType(true);
-        return new Account(normal, daysOverdrawn);
+        AccountType premium = AccountType.PREMIUM;
+        MoneyWithCurrency balance = new MoneyWithCurrency(0.0, "EUR");
+
+        return new Account(premium, daysOverdrawn, balance);
     }
 }
